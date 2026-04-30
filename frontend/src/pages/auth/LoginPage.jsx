@@ -161,11 +161,10 @@ function LoginPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Live backend connected
+            Secure Login
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            This form now sends login data to your SmartMeal backend API and
-            stores the returned token and user information locally.
+            Your information is safely processed and stored for a smooth SmartMeal experience.
           </p>
         </div>
 
