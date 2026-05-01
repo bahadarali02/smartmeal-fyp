@@ -15,9 +15,26 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
+/**
+ * ✅ PRODUCTION-READY CORS CONFIG
+ */
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  process.env.FRONTEND_URL, // deployed frontend (Vercel)
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps, Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked origin: ${origin}`));
+      }
+    },
     credentials: true,
   })
 );
@@ -33,6 +50,7 @@ app.get("/", (req, res) => {
     message: "SmartMeal backend is running successfully.",
   });
 });
+
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/meals", mealRoutes);
