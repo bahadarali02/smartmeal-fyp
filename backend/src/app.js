@@ -15,25 +15,23 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
-/**
- * ✅ PRODUCTION-READY CORS CONFIG
- */
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  process.env.FRONTEND_URL, // deployed frontend (Vercel)
-];
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps, Postman)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        return callback(null, true);
+      }
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked origin: ${origin}`));
+        return callback(null, true);
       }
+
+      return callback(new Error(`CORS blocked origin: ${origin}`));
     },
     credentials: true,
   })
@@ -42,7 +40,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../uploads"), {
+    maxAge: "7d",
+    etag: true,
+    fallthrough: true,
+  })
+);
 
 app.get("/", (req, res) => {
   res.status(200).json({

@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { getBackendBaseUrl } from "./api";
 
 export const uploadSingleImage = async (imageFile, token) => {
   const formData = new FormData();
@@ -16,16 +16,33 @@ export const uploadSingleImage = async (imageFile, token) => {
 };
 
 export const getFullImageUrl = (imageUrl) => {
-  if (!imageUrl) {
+  if (!imageUrl || typeof imageUrl !== "string") {
     return "";
   }
 
-  if (imageUrl.startsWith("http")) {
-    return imageUrl;
+  const cleanImageUrl = imageUrl.trim();
+
+  if (!cleanImageUrl) {
+    return "";
   }
 
-  const baseUrl =
-    api.defaults.baseURL?.replace("/api", "") || "http://localhost:5000";
+  if (
+    cleanImageUrl.startsWith("http://") ||
+    cleanImageUrl.startsWith("https://") ||
+    cleanImageUrl.startsWith("data:")
+  ) {
+    return cleanImageUrl;
+  }
 
-  return `${baseUrl}${imageUrl}`;
+  const backendBaseUrl = getBackendBaseUrl();
+
+  if (cleanImageUrl.startsWith("/uploads/")) {
+    return `${backendBaseUrl}${cleanImageUrl}`;
+  }
+
+  if (cleanImageUrl.startsWith("uploads/")) {
+    return `${backendBaseUrl}/${cleanImageUrl}`;
+  }
+
+  return `${backendBaseUrl}/uploads/${cleanImageUrl}`;
 };
