@@ -48,8 +48,8 @@ function DashboardTopbar({
 
   return (
     <div className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
-      <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold capitalize text-slate-500">
               {savedUser?.role || "workspace"}
@@ -62,7 +62,7 @@ function DashboardTopbar({
             </span>
           </div>
 
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+          <h2 className="mt-3 break-words text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             {title}
           </h2>
 
@@ -77,7 +77,7 @@ function DashboardTopbar({
           {actionLabel && actionPath ? (
             <Link
               to={actionPath}
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-slate-900/10 transition duration-300 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-slate-900/10 transition duration-300 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md"
             >
               {actionLabel}
               <ArrowIcon />
@@ -94,13 +94,17 @@ function DashboardTopbar({
 
           <Link
             to="/profile"
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-900"
+            className="flex min-h-[44px] items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-900 sm:px-4"
           >
-            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
               {profileImageSrc ? (
                 <img
                   src={profileImageSrc}
                   alt={savedUser?.name || "User"}
+                  loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -108,7 +112,9 @@ function DashboardTopbar({
               )}
             </div>
 
-            <span className="hidden sm:block">{savedUser?.name || "User"}</span>
+            <span className="hidden max-w-[140px] truncate sm:block">
+              {savedUser?.name || "User"}
+            </span>
           </Link>
         </div>
       </div>

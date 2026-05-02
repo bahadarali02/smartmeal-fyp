@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getFullImageUrl } from "../../services/uploadService";
 
@@ -104,7 +104,33 @@ function DashboardIcon({ type }) {
   return icons[type] || icons.dashboard;
 }
 
-function DashboardSidebar({ role = "customer" }) {
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+      <path
+        d="M6 6l12 12M18 6 6 18"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function DashboardSidebarContent({ role, onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -123,11 +149,7 @@ function DashboardSidebar({ role = "customer" }) {
       { name: "My Orders", path: "/customer/orders", icon: "orders" },
       { name: "Favorites", path: "/customer/favorites", icon: "favorites" },
       { name: "Following", path: "/customer/following", icon: "following" },
-      {
-        name: "Notifications",
-        path: "/notifications",
-        icon: "notifications",
-      },
+      { name: "Notifications", path: "/notifications", icon: "notifications" },
       { name: "Cart", path: "/order", icon: "cart" },
       { name: "Profile Settings", path: "/profile", icon: "profile" },
     ],
@@ -135,11 +157,7 @@ function DashboardSidebar({ role = "customer" }) {
       { name: "Dashboard", path: "/chef/dashboard", icon: "dashboard" },
       { name: "My Meals", path: "/chef/meals", icon: "meals" },
       { name: "Orders", path: "/chef/orders", icon: "orders" },
-      {
-        name: "Notifications",
-        path: "/notifications",
-        icon: "notifications",
-      },
+      { name: "Notifications", path: "/notifications", icon: "notifications" },
       { name: "Profile Settings", path: "/profile", icon: "profile" },
     ],
     admin: [
@@ -147,11 +165,7 @@ function DashboardSidebar({ role = "customer" }) {
       { name: "Users", path: "/admin/users", icon: "users" },
       { name: "Meals", path: "/admin/meals", icon: "meals" },
       { name: "Orders", path: "/admin/orders", icon: "orders" },
-      {
-        name: "Notifications",
-        path: "/notifications",
-        icon: "notifications",
-      },
+      { name: "Notifications", path: "/notifications", icon: "notifications" },
       { name: "Profile Settings", path: "/profile", icon: "profile" },
     ],
   };
@@ -177,131 +191,202 @@ function DashboardSidebar({ role = "customer" }) {
   };
 
   return (
-    <aside className="w-full border-b border-slate-200 bg-white/90 backdrop-blur-xl lg:min-h-screen lg:w-72 lg:border-b-0 lg:border-r">
-      <div className="flex h-full flex-col">
-        <div className="border-b border-slate-200 px-5 py-6">
-          <Link to="/" className="group flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-              SM
+    <div className="flex h-full min-h-0 flex-col bg-white/95 backdrop-blur-xl">
+      <div className="border-b border-slate-200 px-5 py-6">
+        <Link to="/" onClick={onNavigate} className="group flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
+            SM
+          </div>
+
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900">
+              SmartMeal
+            </h1>
+            <p className="truncate text-xs text-slate-500 capitalize">
+              {role} workspace
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="px-5 py-5">
+        <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-sm font-semibold text-slate-500 shadow-sm">
+              {profileImageSrc ? (
+                <img
+                  src={profileImageSrc}
+                  alt={savedUser?.name || "User"}
+                  loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                (savedUser?.name || "SM").slice(0, 2).toUpperCase()
+              )}
             </div>
 
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-900">
-                SmartMeal
-              </h1>
-              <p className="text-xs text-slate-500 capitalize">
-                {role} workspace
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-900">
+                {savedUser?.name || "SmartMeal User"}
               </p>
-            </div>
-          </Link>
-        </div>
-
-        <div className="px-5 py-5">
-          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white text-sm font-semibold text-slate-500 shadow-sm">
-                {profileImageSrc ? (
-                  <img
-                    src={profileImageSrc}
-                    alt={savedUser?.name || "User"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (savedUser?.name || "SM").slice(0, 2).toUpperCase()
-                )}
-              </div>
-
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-900">
-                  {savedUser?.name || "SmartMeal User"}
-                </p>
-                <p className="mt-0.5 truncate text-xs text-slate-500">
-                  {savedUser?.email || "No email available"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-600 shadow-sm">
-                {savedUser?.role || role}
-              </span>
-
-              {role === "chef" && savedUser?.approvalStatus ? (
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    savedUser.approvalStatus === "approved"
-                      ? "border border-emerald-100 bg-emerald-50 text-emerald-700"
-                      : savedUser.approvalStatus === "rejected"
-                      ? "border border-red-100 bg-red-50 text-red-700"
-                      : "border border-amber-100 bg-amber-50 text-amber-700"
-                  }`}
-                >
-                  {savedUser.approvalStatus}
-                </span>
-              ) : null}
+              <p className="mt-0.5 truncate text-xs text-slate-500">
+                {savedUser?.email || "No email available"}
+              </p>
             </div>
           </div>
-        </div>
 
-        <div className="px-4 pb-6">
-          <p className="px-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Navigation
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-600 shadow-sm">
+              {savedUser?.role || role}
+            </span>
 
-          <nav className="mt-4 flex flex-col gap-2">
-            {currentItems.map((item) => {
-              const active = isActiveLink(item.path);
-
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-300 ${
-                    active
-                      ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
-                      : "text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition duration-300 ${
-                      active
-                        ? "bg-white/15 text-white"
-                        : "bg-white text-slate-500 shadow-sm group-hover:text-slate-900"
-                    }`}
-                  >
-                    <DashboardIcon type={item.icon} />
-                  </span>
-
-                  <span className="truncate">{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="mt-auto p-4">
-          <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
-            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-100/70 blur-2xl" />
-
-            <div className="relative">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                SmartMeal
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Local homemade food ordering with clean dashboards.
-              </p>
-
-              <button
-                onClick={handleLogout}
-                className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900 hover:shadow-md"
+            {role === "chef" && savedUser?.approvalStatus ? (
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  savedUser.approvalStatus === "approved"
+                    ? "border border-emerald-100 bg-emerald-50 text-emerald-700"
+                    : savedUser.approvalStatus === "rejected"
+                    ? "border border-red-100 bg-red-50 text-red-700"
+                    : "border border-amber-100 bg-amber-50 text-amber-700"
+                }`}
               >
-                Logout
-              </button>
-            </div>
+                {savedUser.approvalStatus}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
-    </aside>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+        <p className="px-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+          Navigation
+        </p>
+
+        <nav className="mt-4 flex flex-col gap-2">
+          {currentItems.map((item) => {
+            const active = isActiveLink(item.path);
+
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={onNavigate}
+                className={`group flex min-h-[48px] items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-300 ${
+                  active
+                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
+                    : "text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition duration-300 ${
+                    active
+                      ? "bg-white/15 text-white"
+                      : "bg-white text-slate-500 shadow-sm group-hover:text-slate-900"
+                  }`}
+                >
+                  <DashboardIcon type={item.icon} />
+                </span>
+
+                <span className="truncate">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="border-t border-slate-200 p-4">
+        <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-100/70 blur-2xl" />
+
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              SmartMeal
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Local homemade food ordering with clean dashboards.
+            </p>
+
+            <button
+              onClick={handleLogout}
+              className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900 hover:shadow-md"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashboardSidebar({ role = "customer" }) {
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white/90 lg:sticky lg:top-0 lg:block lg:h-screen">
+        <DashboardSidebarContent
+          role={role}
+          onNavigate={() => setMobileOpen(false)}
+        />
+      </aside>
+
+      <button
+        type="button"
+        onClick={() => setMobileOpen(true)}
+        className="fixed bottom-5 left-5 z-[55] inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-xl shadow-slate-900/10 transition duration-300 hover:-translate-y-0.5 hover:bg-slate-50 lg:hidden"
+        aria-label="Open dashboard menu"
+      >
+        <MenuIcon />
+      </button>
+
+      <div
+        className={`fixed inset-0 z-[70] bg-slate-950/45 backdrop-blur-sm transition duration-300 lg:hidden ${
+          mobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setMobileOpen(false)}
+      />
+
+      <aside
+        className={`fixed left-0 top-0 z-[80] h-full w-[88%] max-w-[330px] overflow-hidden border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 lg:hidden ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="absolute right-4 top-4 z-10">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm"
+            aria-label="Close dashboard menu"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <DashboardSidebarContent
+          role={role}
+          onNavigate={() => setMobileOpen(false)}
+        />
+      </aside>
+    </>
   );
 }
 
