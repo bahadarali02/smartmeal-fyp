@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import LogoMark from "../common/LogoMark";
 
 function getDashboardPath(role) {
   if (role === "customer") {
@@ -63,19 +64,21 @@ function BellIcon() {
 
 function MenuIcon({ open }) {
   return (
-    <div className="relative h-5 w-5">
+    <div className="relative h-5 w-5" aria-hidden="true">
       <span
-        className={`absolute left-0 top-0 h-0.5 w-5 rounded bg-current transition-all duration-300 ${
+        className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
           open ? "translate-y-2 rotate-45" : ""
         }`}
       />
+
       <span
-        className={`absolute left-0 top-2 h-0.5 w-5 rounded bg-current transition-all duration-300 ${
+        className={`absolute left-0 top-2 h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
           open ? "opacity-0" : "opacity-100"
         }`}
       />
+
       <span
-        className={`absolute left-0 top-4 h-0.5 w-5 rounded bg-current transition-all duration-300 ${
+        className={`absolute left-0 top-4 h-0.5 w-5 rounded-full bg-current transition-all duration-300 ${
           open ? "-translate-y-2 -rotate-45" : ""
         }`}
       />
@@ -145,6 +148,7 @@ function Navbar() {
     localStorage.removeItem("smartmealCart");
 
     setCartCount(0);
+    setMobileMenuOpen(false);
 
     navigate("/login");
   };
@@ -174,27 +178,22 @@ function Navbar() {
     }`;
   };
 
+  const mobileNavLinkClass = (path) => {
+    const active = isActive(path);
+
+    return `flex min-h-[48px] items-center rounded-2xl px-4 py-3 text-sm font-semibold transition duration-300 ${
+      active
+        ? "bg-slate-900 text-white shadow-sm"
+        : "bg-slate-50 text-slate-700 hover:bg-white hover:text-slate-900 hover:shadow-sm"
+    }`;
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
         <div className="container-custom flex h-20 items-center justify-between gap-3">
-          <Link
-            to="/"
-            className="group flex min-w-0 items-center gap-3"
-          >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-              SM
-            </div>
-
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900">
-                SmartMeal
-              </h1>
-
-              <p className="hidden text-xs text-slate-500 sm:block">
-                Homemade food marketplace
-              </p>
-            </div>
+          <Link to="/" className="group min-w-0">
+            <LogoMark subtitle="Homemade food marketplace" />
           </Link>
 
           <nav className="hidden items-center gap-2 lg:flex">
@@ -222,10 +221,7 @@ function Navbar() {
                   Notifications
                 </Link>
 
-                <Link
-                  to="/profile"
-                  className={navLinkClass("/profile")}
-                >
+                <Link to="/profile" className={navLinkClass("/profile")}>
                   Profile
                 </Link>
               </>
@@ -287,19 +283,18 @@ function Navbar() {
                   Login
                 </Link>
 
-                <Link
-                  to="/signup"
-                  className="hidden lg:inline-flex btn-primary"
-                >
+                <Link to="/signup" className="hidden lg:inline-flex btn-primary">
                   Get Started
                 </Link>
               </>
             )}
 
             <button
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              type="button"
+              onClick={() => setMobileMenuOpen((previousState) => !previousState)}
               className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition duration-300 hover:bg-slate-50 lg:hidden"
-              aria-label="Toggle Menu"
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
               <MenuIcon open={mobileMenuOpen} />
             </button>
@@ -313,91 +308,91 @@ function Navbar() {
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
         }`}
+        onClick={() => setMobileMenuOpen(false)}
       >
         <div
           className={`absolute right-0 top-0 flex h-full w-[88%] max-w-sm flex-col overflow-y-auto bg-white shadow-2xl transition-transform duration-300 ${
             mobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
+          onClick={(event) => event.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-slate-200 p-5">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                SmartMeal
-              </h2>
-
-              <p className="text-sm text-slate-500">
-                Navigation Menu
-              </p>
-            </div>
+            <LogoMark subtitle="Navigation Menu" />
 
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm"
+              aria-label="Close menu"
             >
               ✕
             </button>
           </div>
 
-          <div className="flex flex-1 flex-col gap-2 p-5">
-            <Link to="/" className={navLinkClass("/")}>
+          <div className="flex flex-1 flex-col gap-3 p-5">
+            <Link to="/" className={mobileNavLinkClass("/")}>
               Home
             </Link>
 
-            <Link to="/meals" className={navLinkClass("/meals")}>
+            <Link to="/meals" className={mobileNavLinkClass("/meals")}>
               Meals
             </Link>
 
-            <Link to="/order" className={navLinkClass("/order")}>
-              Cart / Orders
+            <Link to="/order" className={mobileNavLinkClass("/order")}>
+              Cart / Checkout
             </Link>
 
             {isLoggedIn ? (
               <>
                 <Link
                   to={getDashboardPath(savedUser.role)}
-                  className={navLinkClass(getDashboardPath(savedUser.role))}
+                  className={mobileNavLinkClass(getDashboardPath(savedUser.role))}
                 >
                   Dashboard
                 </Link>
 
-                <Link
-                  to="/profile"
-                  className={navLinkClass("/profile")}
-                >
+                <Link to="/profile" className={mobileNavLinkClass("/profile")}>
                   Profile
                 </Link>
 
                 <Link
                   to="/notifications"
-                  className={navLinkClass("/notifications")}
+                  className={mobileNavLinkClass("/notifications")}
                 >
                   Notifications
                 </Link>
 
-                <button
-                  onClick={handleLogout}
-                  className="btn-secondary mt-4 w-full"
-                >
+                <button onClick={handleLogout} className="btn-secondary mt-4 w-full">
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className={navLinkClass("/login")}
-                >
+                <Link to="/login" className={mobileNavLinkClass("/login")}>
                   Login
                 </Link>
 
-                <Link
-                  to="/signup"
-                  className={navLinkClass("/signup")}
-                >
+                <Link to="/signup" className={mobileNavLinkClass("/signup")}>
                   Become a Chef
+                </Link>
+
+                <Link to="/signup" className="btn-primary mt-4 w-full">
+                  Get Started
                 </Link>
               </>
             )}
+          </div>
+
+          <div className="border-t border-slate-200 p-5">
+            <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-900">
+                SmartMeal
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Homemade meals, verified chefs, and local ordering in one clean
+                marketplace.
+              </p>
+            </div>
           </div>
         </div>
       </div>

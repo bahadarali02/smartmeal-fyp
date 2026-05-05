@@ -1,4 +1,29 @@
-const { Meal, User } = require("../models");
+const { Meal, User, Review } = require("../models");
+
+function attachRatingSummary(mealInstance) {
+  const meal = mealInstance.toJSON ? mealInstance.toJSON() : mealInstance;
+  const reviews = meal.reviews || [];
+
+  const reviewCount = reviews.length;
+
+  const averageRating =
+    reviewCount > 0
+      ? Number(
+          (
+            reviews.reduce((sum, review) => {
+              return sum + Number(review.rating || 0);
+            }, 0) / reviewCount
+          ).toFixed(1)
+        )
+      : 0;
+
+  return {
+    ...meal,
+    reviews,
+    reviewCount,
+    averageRating,
+  };
+}
 
 const createMeal = async (req, res) => {
   try {
@@ -70,15 +95,30 @@ const getAllMeals = async (req, res) => {
             "approvalStatus",
           ],
         },
+        {
+          model: Review,
+          as: "reviews",
+          required: false,
+          attributes: ["id", "rating", "comment", "customerId", "createdAt"],
+          include: [
+            {
+              model: User,
+              as: "customer",
+              attributes: ["id", "name", "profileImageUrl"],
+            },
+          ],
+        },
       ],
       order: [["createdAt", "DESC"]],
     });
 
+    const mealsWithRatings = meals.map((meal) => attachRatingSummary(meal));
+
     return res.status(200).json({
       success: true,
       message: "Meals fetched successfully.",
-      count: meals.length,
-      meals,
+      count: mealsWithRatings.length,
+      meals: mealsWithRatings,
     });
   } catch (error) {
     return res.status(500).json({
@@ -117,7 +157,21 @@ const getMealById = async (req, res) => {
             "approvalStatus",
           ],
         },
+        {
+          model: Review,
+          as: "reviews",
+          required: false,
+          attributes: ["id", "rating", "comment", "customerId", "createdAt"],
+          include: [
+            {
+              model: User,
+              as: "customer",
+              attributes: ["id", "name", "profileImageUrl"],
+            },
+          ],
+        },
       ],
+      order: [[{ model: Review, as: "reviews" }, "createdAt", "DESC"]],
     });
 
     if (!meal) {
@@ -127,10 +181,12 @@ const getMealById = async (req, res) => {
       });
     }
 
+    const mealWithRating = attachRatingSummary(meal);
+
     return res.status(200).json({
       success: true,
       message: "Meal fetched successfully.",
-      meal,
+      meal: mealWithRating,
     });
   } catch (error) {
     return res.status(500).json({
@@ -145,14 +201,31 @@ const getChefMeals = async (req, res) => {
   try {
     const meals = await Meal.findAll({
       where: { chefId: req.user.id },
+      include: [
+        {
+          model: Review,
+          as: "reviews",
+          required: false,
+          attributes: ["id", "rating", "comment", "customerId", "createdAt"],
+          include: [
+            {
+              model: User,
+              as: "customer",
+              attributes: ["id", "name", "profileImageUrl"],
+            },
+          ],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
+
+    const mealsWithRatings = meals.map((meal) => attachRatingSummary(meal));
 
     return res.status(200).json({
       success: true,
       message: "Chef meals fetched successfully.",
-      count: meals.length,
-      meals,
+      count: mealsWithRatings.length,
+      meals: mealsWithRatings,
     });
   } catch (error) {
     return res.status(500).json({

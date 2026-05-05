@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getFullImageUrl } from "../../services/uploadService";
+import LogoMark from "../common/LogoMark";
 
 function DashboardIcon({ type }) {
   const common = "h-5 w-5";
@@ -194,18 +195,7 @@ function DashboardSidebarContent({ role, onNavigate }) {
     <div className="flex h-full min-h-0 flex-col bg-white/95 backdrop-blur-xl">
       <div className="border-b border-slate-200 px-5 py-6">
         <Link to="/" onClick={onNavigate} className="group flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-            SM
-          </div>
-
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900">
-              SmartMeal
-            </h1>
-            <p className="truncate text-xs text-slate-500 capitalize">
-              {role} workspace
-            </p>
-          </div>
+          <LogoMark subtitle={`${role} workspace`} />
         </Link>
       </div>
 

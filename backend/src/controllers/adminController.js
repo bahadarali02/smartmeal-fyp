@@ -5,6 +5,7 @@ const {
   OrderItem,
   Notification,
   Follow,
+  Review,
 } = require("../models");
 
 const {
@@ -314,7 +315,10 @@ const updateMealModerationStatus = async (req, res) => {
       });
     }
 
-    if (moderationStatus === "approved" && meal.chef?.approvalStatus !== "approved") {
+    if (
+      moderationStatus === "approved" &&
+      meal.chef?.approvalStatus !== "approved"
+    ) {
       return res.status(400).json({
         success: false,
         message:
@@ -489,6 +493,116 @@ const getAllOrdersForAdmin = async (req, res) => {
   }
 };
 
+const getAllReviewsForAdmin = async (req, res) => {
+  try {
+    const reviews = await Review.findAll({
+      include: [
+        {
+          model: Meal,
+          as: "meal",
+          attributes: ["id", "name", "price", "imageUrl", "chefId"],
+          include: [
+            {
+              model: User,
+              as: "chef",
+              attributes: ["id", "name", "email", "phone", "profileImageUrl"],
+            },
+          ],
+        },
+        {
+          model: User,
+          as: "customer",
+          attributes: ["id", "name", "email", "phone", "profileImageUrl"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const stats = {
+      totalReviews: reviews.length,
+      fiveStarReviews: reviews.filter((review) => Number(review.rating) === 5)
+        .length,
+      lowRatingReviews: reviews.filter((review) => Number(review.rating) <= 2)
+        .length,
+      averageRating:
+        reviews.length > 0
+          ? Number(
+              (
+                reviews.reduce((sum, review) => {
+                  return sum + Number(review.rating || 0);
+                }, 0) / reviews.length
+              ).toFixed(1)
+            )
+          : 0,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Reviews fetched successfully.",
+      count: reviews.length,
+      stats,
+      reviews,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch reviews.",
+      error: error.message,
+    });
+  }
+};
+
+const deleteReviewAsAdmin = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+
+    const review = await Review.findByPk(reviewId, {
+      include: [
+        {
+          model: Meal,
+          as: "meal",
+          attributes: ["id", "name", "chefId"],
+        },
+        {
+          model: User,
+          as: "customer",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
+
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found.",
+      });
+    }
+
+    await Notification.create({
+      userId: review.customerId,
+      title: "Review removed",
+      message: `Your review for ${
+        review.meal?.name || "a meal"
+      } was removed by admin because it did not meet marketplace standards.`,
+      type: "marketplace_update",
+      isRead: false,
+    });
+
+    await review.destroy();
+
+    return res.status(200).json({
+      success: true,
+      message: "Review deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete review.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAdminDashboard,
   getAllUsersForAdmin,
@@ -497,4 +611,6 @@ module.exports = {
   updateMealModerationStatus,
   deleteMealAsAdmin,
   getAllOrdersForAdmin,
+  getAllReviewsForAdmin,
+  deleteReviewAsAdmin,
 };

@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import SectionHeader from "../components/common/SectionHeader";
+import EmptyState from "../components/common/EmptyState";
+import StarRating from "../components/common/StarRating";
+import { SkeletonCard } from "../components/common/Skeleton";
 import { getAllMeals } from "../services/mealService";
 import {
   addFavorite,
@@ -71,11 +75,11 @@ function SearchFilterBar({
   onSortChange,
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/70">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-orange-100/70 blur-3xl" />
+    <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 sm:p-5">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-orange-100/70 blur-3xl" />
 
       <div className="relative grid gap-4 lg:grid-cols-[1.5fr_1fr_1fr]">
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="search"
             className="mb-2 block text-sm font-semibold text-slate-700"
@@ -99,7 +103,7 @@ function SearchFilterBar({
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="category"
             className="mb-2 block text-sm font-semibold text-slate-700"
@@ -118,7 +122,7 @@ function SearchFilterBar({
           </select>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="sort"
             className="mb-2 block text-sm font-semibold text-slate-700"
@@ -142,6 +146,14 @@ function SearchFilterBar({
   );
 }
 
+function ImageFallback({ label = "No photo" }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-50 via-white to-slate-100 px-4 text-center text-sm font-semibold text-slate-400">
+      {label}
+    </div>
+  );
+}
+
 function MealCard({
   meal,
   onAddToCart,
@@ -153,26 +165,35 @@ function MealCard({
   const isVerifiedChef = meal.chef?.approvalStatus === "approved";
   const isFavoriteLoading = favoriteLoadingId === meal.id;
   const chefInitials = chefName.slice(0, 2).toUpperCase();
+  const averageRating = Number(meal.averageRating || 0);
+  const reviewCount = Number(meal.reviewCount || 0);
+
+  const [mealImageFailed, setMealImageFailed] = useState(false);
+  const [chefImageFailed, setChefImageFailed] = useState(false);
 
   return (
-    <div className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm shadow-slate-200/70 transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/80">
+    <div className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm shadow-slate-200/70 transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/80">
       <div className="relative overflow-hidden bg-slate-100">
-        {meal.imageUrl ? (
+        {meal.imageUrl && !mealImageFailed ? (
           <img
             src={getFullImageUrl(meal.imageUrl)}
             alt={meal.name}
+            loading="lazy"
+            onError={() => setMealImageFailed(true)}
             className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-110"
           />
         ) : (
-          <div className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-br from-orange-50 via-white to-slate-100 text-sm text-slate-400">
-            No meal photo
+          <div className="aspect-[4/3] w-full">
+            <ImageFallback label="No meal photo" />
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/55 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/55 to-transparent" />
 
-        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className={meal.availability ? "badge-success" : "badge-danger"}>
+        <div className="absolute left-3 top-3 flex max-w-[calc(100%-72px)] flex-wrap gap-2 sm:left-4 sm:top-4">
+          <span
+            className={meal.availability ? "badge-success" : "badge-danger"}
+          >
             {meal.availability ? "Available" : "Unavailable"}
           </span>
 
@@ -187,7 +208,7 @@ function MealCard({
           type="button"
           onClick={() => onToggleFavorite(meal.id)}
           disabled={isFavoriteLoading}
-          className={`absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-2xl border shadow-sm backdrop-blur transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${
+          className={`absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-2xl border shadow-sm backdrop-blur transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 sm:right-4 sm:top-4 ${
             isFavorite
               ? "border-red-200 bg-red-50/95 text-red-600"
               : "border-white/50 bg-white/90 text-slate-700 hover:text-red-600"
@@ -198,26 +219,28 @@ function MealCard({
         </button>
 
         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium text-white/80">Homemade meal</p>
-            <h3 className="mt-1 line-clamp-2 text-xl font-semibold leading-tight text-white">
+            <h3 className="mt-1 line-clamp-2 break-words text-lg font-semibold leading-tight text-white sm:text-xl">
               {meal.name}
             </h3>
           </div>
 
-          <span className="rounded-2xl bg-white/95 px-3 py-2 text-sm font-bold text-slate-900 shadow-sm backdrop-blur">
+          <span className="shrink-0 rounded-2xl bg-white/95 px-3 py-2 text-sm font-bold text-slate-900 shadow-sm backdrop-blur">
             {formatCurrency(meal.price)}
           </span>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="flex flex-1 flex-col p-4 sm:p-6">
         <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs font-semibold text-slate-500 shadow-sm">
-            {meal.chef?.profileImageUrl ? (
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs font-semibold text-slate-500 shadow-sm">
+            {meal.chef?.profileImageUrl && !chefImageFailed ? (
               <img
                 src={getFullImageUrl(meal.chef.profileImageUrl)}
                 alt={chefName}
+                loading="lazy"
+                onError={() => setChefImageFailed(true)}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -234,9 +257,23 @@ function MealCard({
             </p>
           </div>
 
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-600 shadow-sm">
-            ★ 4.8
-          </span>
+          <div className="shrink-0 rounded-full bg-white px-3 py-1 shadow-sm">
+            <StarRating
+              rating={averageRating}
+              count={reviewCount}
+              showValue={true}
+              showCount={false}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/70 px-4 py-3">
+          <StarRating
+            rating={averageRating}
+            count={reviewCount}
+            showValue={true}
+            showCount={true}
+          />
         </div>
 
         <p className="mt-5 line-clamp-3 text-sm leading-7 text-slate-500">
@@ -245,46 +282,48 @@ function MealCard({
 
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
           <div className="flex items-start gap-2 text-slate-500">
-            <span className="mt-0.5 text-orange-500">
+            <span className="mt-0.5 shrink-0 text-orange-500">
               <LocationIcon />
             </span>
 
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-700">
                 Nearby delivery only
               </p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 break-words text-sm text-slate-500">
                 Service area: {meal.chef?.serviceArea || "Local area only"}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button onClick={() => onAddToCart(meal)} className="btn-primary">
-            Add to Cart
+        <div className="mt-auto pt-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button onClick={() => onAddToCart(meal)} className="btn-primary">
+              Add to Cart
+            </button>
+
+            <Link to={`/meals/${meal.id}`} className="btn-secondary text-center">
+              View Meal
+            </Link>
+          </div>
+
+          <button
+            onClick={() => onToggleFavorite(meal.id)}
+            disabled={isFavoriteLoading}
+            className={`mt-3 min-h-[48px] w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${
+              isFavorite
+                ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:shadow-sm"
+            }`}
+          >
+            {isFavoriteLoading
+              ? "Updating..."
+              : isFavorite
+              ? "Remove from Favorites"
+              : "Save to Favorites"}
           </button>
-
-          <Link to={`/meals/${meal.id}`} className="btn-secondary text-center">
-            View Meal
-          </Link>
         </div>
-
-        <button
-          onClick={() => onToggleFavorite(meal.id)}
-          disabled={isFavoriteLoading}
-          className={`mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${
-            isFavorite
-              ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:shadow-sm"
-          }`}
-        >
-          {isFavoriteLoading
-            ? "Updating..."
-            : isFavorite
-            ? "Remove from Favorites"
-            : "Save to Favorites"}
-        </button>
       </div>
     </div>
   );
@@ -315,10 +354,12 @@ function MealListingPage() {
         const mealData = await getAllMeals();
         setMeals(mealData.meals || []);
       } catch (error) {
-        setErrorMessage(
+        const message =
           error?.response?.data?.message ||
-            "Failed to fetch meals. Please try again."
-        );
+          "Failed to fetch meals. Please try again.";
+
+        setErrorMessage(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -336,9 +377,11 @@ function MealListingPage() {
           setFavoriteMealIds(ids);
         }
       } catch (error) {
-        setFavoriteWarning(
-          "Meals loaded, but favorites could not be synced right now."
-        );
+        const message =
+          "Meals loaded, but favorites could not be synced right now.";
+
+        setFavoriteWarning(message);
+        toast.error(message);
       }
     };
 
@@ -368,6 +411,7 @@ function MealListingPage() {
 
     localStorage.setItem("smartmealCart", JSON.stringify(existingCart));
     setSuccessMessage(`${meal.name} added to cart.`);
+    toast.success(`${meal.name} added to cart.`);
 
     setTimeout(() => {
       setSuccessMessage("");
@@ -384,12 +428,16 @@ function MealListingPage() {
       const user = JSON.parse(localStorage.getItem("smartmealUser")) || null;
 
       if (!token || !user) {
-        setErrorMessage("Please login as a customer to save favorites.");
+        const message = "Please login as a customer to save favorites.";
+        setErrorMessage(message);
+        toast.error(message);
         return;
       }
 
       if (user.role !== "customer") {
-        setErrorMessage("Only customer accounts can save favorite meals.");
+        const message = "Only customer accounts can save favorite meals.";
+        setErrorMessage(message);
+        toast.error(message);
         return;
       }
 
@@ -401,20 +449,24 @@ function MealListingPage() {
           previousIds.filter((id) => id !== mealId)
         );
         setSuccessMessage("Meal removed from favorites.");
+        toast.success("Meal removed from favorites.");
       } else {
         await addFavorite(mealId, token);
         setFavoriteMealIds((previousIds) => [...previousIds, mealId]);
         setSuccessMessage("Meal saved to favorites.");
+        toast.success("Meal saved to favorites.");
       }
 
       setTimeout(() => {
         setSuccessMessage("");
       }, 2000);
     } catch (error) {
-      setErrorMessage(
+      const message =
         error?.response?.data?.message ||
-          "Failed to update favorites. Please try again."
-      );
+        "Failed to update favorites. Please try again.";
+
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setFavoriteLoadingId(null);
     }
@@ -458,10 +510,10 @@ function MealListingPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white py-16">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white py-14 sm:py-16">
         <div className="absolute inset-0 hero-grid-bg opacity-60" />
-        <div className="absolute -left-20 top-0 h-72 w-72 rounded-full bg-orange-100/70 blur-3xl" />
-        <div className="absolute right-0 top-16 h-72 w-72 rounded-full bg-slate-200/70 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-orange-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 top-16 h-72 w-72 rounded-full bg-slate-200/70 blur-3xl" />
 
         <div className="container-custom relative">
           <div className="mx-auto max-w-3xl text-center">
@@ -477,13 +529,13 @@ function MealListingPage() {
         </div>
       </section>
 
-      <section className="py-10">
+      <section className="py-8 sm:py-10">
         <div className="container-custom">
-          <div className="relative mb-6 overflow-hidden rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/70">
-            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-orange-100/70 blur-3xl" />
+          <div className="relative mb-6 overflow-hidden rounded-[32px] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/70 sm:p-5">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-orange-100/70 blur-3xl" />
 
             <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900">
                   SmartMeal is a local marketplace
                 </p>
@@ -494,11 +546,14 @@ function MealListingPage() {
               </div>
 
               {isCustomer ? (
-                <Link to="/customer/favorites" className="btn-secondary w-fit">
+                <Link
+                  to="/customer/favorites"
+                  className="btn-secondary w-full sm:w-fit"
+                >
                   View My Favorites
                 </Link>
               ) : (
-                <Link to="/login" className="btn-secondary w-fit">
+                <Link to="/login" className="btn-secondary w-full sm:w-fit">
                   Login to Save Favorites
                 </Link>
               )}
@@ -531,15 +586,15 @@ function MealListingPage() {
           ) : null}
 
           {loading ? (
-            <div className="loading-shell mt-10 text-center">
-              <p className="text-sm font-semibold text-slate-500">
-                Loading meals...
-              </p>
+            <div className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
             </div>
           ) : null}
 
           {!loading && errorMessage ? (
-            <div className="mt-10 rounded-[30px] border border-red-200 bg-red-50 p-8 text-center shadow-sm">
+            <div className="mt-10 rounded-[30px] border border-red-200 bg-red-50 p-6 text-center shadow-sm sm:p-8">
               <p className="text-sm font-semibold text-red-700">
                 {errorMessage}
               </p>
@@ -547,15 +602,14 @@ function MealListingPage() {
           ) : null}
 
           {!loading && !errorMessage && filteredMeals.length === 0 ? (
-            <div className="mt-10 empty-state">
-              <p className="text-lg font-semibold text-slate-900">
-                No meals found
-              </p>
-              <p className="mt-2 text-sm text-slate-500">
-                Approved meals from local chefs will appear here. Try changing
-                your search or filter.
-              </p>
-            </div>
+            <EmptyState
+              type="meals"
+              title="No meals found"
+              message="Approved meals from local chefs will appear here. Try changing your search or filter."
+              actionLabel="Reset filters"
+              actionPath="/meals"
+              className="mt-10"
+            />
           ) : null}
 
           {!loading && !errorMessage && filteredMeals.length > 0 ? (

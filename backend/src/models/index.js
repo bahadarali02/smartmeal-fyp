@@ -5,6 +5,7 @@ const OrderItem = require("./OrderItem");
 const Favorite = require("./Favorite");
 const Follow = require("./Follow");
 const Notification = require("./Notification");
+const Review = require("./Review"); // ✅ NEW
 
 User.hasMany(Meal, {
   foreignKey: "chefId",
@@ -96,6 +97,27 @@ Notification.belongsTo(User, {
   as: "user",
 });
 
+/* ✅ REVIEW RELATIONS */
+Meal.hasMany(Review, {
+  foreignKey: "mealId",
+  as: "reviews",
+});
+
+Review.belongsTo(Meal, {
+  foreignKey: "mealId",
+  as: "meal",
+});
+
+User.hasMany(Review, {
+  foreignKey: "customerId",
+  as: "reviews",
+});
+
+Review.belongsTo(User, {
+  foreignKey: "customerId",
+  as: "customer",
+});
+
 module.exports = {
   User,
   Meal,
@@ -104,4 +126,5 @@ module.exports = {
   Favorite,
   Follow,
   Notification,
+  Review, // ✅ NEW
 };

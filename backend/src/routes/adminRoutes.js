@@ -7,6 +7,8 @@ const {
   updateMealModerationStatus,
   deleteMealAsAdmin,
   getAllOrdersForAdmin,
+  getAllReviewsForAdmin,
+  deleteReviewAsAdmin,
 } = require("../controllers/adminController");
 const {
   protect,
@@ -42,5 +44,14 @@ router.delete(
 );
 
 router.get("/orders", protect, authorizeRoles("admin"), getAllOrdersForAdmin);
+
+router.get("/reviews", protect, authorizeRoles("admin"), getAllReviewsForAdmin);
+
+router.delete(
+  "/reviews/:reviewId",
+  protect,
+  authorizeRoles("admin"),
+  deleteReviewAsAdmin
+);
 
 module.exports = router;

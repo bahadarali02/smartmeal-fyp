@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import DashboardSidebar from "../../components/layout/DashboardSidebar";
 import DashboardTopbar from "../../components/layout/DashboardTopbar";
+import EmptyState from "../../components/common/EmptyState";
+import {
+  SkeletonLine,
+  SkeletonStatCard,
+  SkeletonTableRows,
+} from "../../components/common/Skeleton";
 import { getChefMeals } from "../../services/mealService";
 import { getChefOrders } from "../../services/orderService";
+import { getFullImageUrl } from "../../services/uploadService";
 
 function formatCurrency(amount) {
   return `Rs. ${Number(amount || 0).toFixed(0)}`;
@@ -143,13 +151,17 @@ function ChefDashboardPage() {
         const token = localStorage.getItem("smartmealToken");
 
         if (!token || !savedUser) {
-          setErrorMessage("Please login first to view your chef dashboard.");
+          const message = "Please login first to view your chef dashboard.";
+          setErrorMessage(message);
+          toast.error(message);
           setLoading(false);
           return;
         }
 
         if (savedUser.role !== "chef") {
-          setErrorMessage("Only chef accounts can access this dashboard.");
+          const message = "Only chef accounts can access this dashboard.";
+          setErrorMessage(message);
+          toast.error(message);
           setLoading(false);
           return;
         }
@@ -162,9 +174,11 @@ function ChefDashboardPage() {
         setMeals(mealData.meals || []);
         setOrders(orderData.orders || []);
       } catch (error) {
-        setErrorMessage(
-          error?.response?.data?.message || "Failed to load chef dashboard."
-        );
+        const message =
+          error?.response?.data?.message || "Failed to load chef dashboard.";
+
+        setErrorMessage(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -218,7 +232,7 @@ function ChefDashboardPage() {
     <div className="min-h-screen bg-slate-50 lg:flex">
       <DashboardSidebar role="chef" />
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <DashboardTopbar
           title="Chef Dashboard"
           subtitle="Manage your homemade meal listings, local orders, chef verification, and delivery workflow from one polished workspace."
@@ -226,13 +240,104 @@ function ChefDashboardPage() {
           actionPath="/chef/meals"
         />
 
-        <main className="p-6 sm:p-8">
+        <main className="p-4 sm:p-6 lg:p-8">
           {loading ? (
-            <div className="loading-shell">
-              <p className="text-sm font-semibold text-slate-500">
-                Loading your chef dashboard...
-              </p>
-            </div>
+            <>
+              <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <SkeletonStatCard />
+                <SkeletonStatCard />
+                <SkeletonStatCard />
+                <SkeletonStatCard />
+              </section>
+
+              <section className="mt-8 grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
+                <div className="panel-soft">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <SkeletonLine className="h-7 w-36" />
+                    <SkeletonLine className="h-7 w-24" />
+                  </div>
+
+                  <SkeletonLine className="mt-5 h-8 w-72 max-w-full" />
+                  <SkeletonLine className="mt-4 w-full" />
+                  <SkeletonLine className="mt-2 w-5/6" />
+                  <SkeletonLine className="mt-2 w-4/6" />
+
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <SkeletonLine className="h-12 w-full rounded-2xl" />
+                    <SkeletonLine className="h-12 w-full rounded-2xl" />
+                  </div>
+                </div>
+
+                <div className="panel-soft">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-3">
+                      <SkeletonLine className="w-36" />
+                      <SkeletonLine className="w-64 max-w-full" />
+                    </div>
+
+                    <SkeletonLine className="h-7 w-32" />
+                  </div>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
+                      <SkeletonLine className="h-11 w-11 rounded-2xl" />
+                      <SkeletonLine className="mt-5 w-32" />
+                      <SkeletonLine className="mt-3 w-full" />
+                      <SkeletonLine className="mt-2 w-5/6" />
+                    </div>
+
+                    <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
+                      <SkeletonLine className="h-11 w-11 rounded-2xl" />
+                      <SkeletonLine className="mt-5 w-32" />
+                      <SkeletonLine className="mt-3 w-full" />
+                      <SkeletonLine className="mt-2 w-5/6" />
+                    </div>
+
+                    <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
+                      <SkeletonLine className="h-11 w-11 rounded-2xl" />
+                      <SkeletonLine className="mt-5 w-32" />
+                      <SkeletonLine className="mt-3 w-full" />
+                      <SkeletonLine className="mt-2 w-5/6" />
+                    </div>
+
+                    <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
+                      <SkeletonLine className="h-11 w-11 rounded-2xl" />
+                      <SkeletonLine className="mt-5 w-32" />
+                      <SkeletonLine className="mt-3 w-full" />
+                      <SkeletonLine className="mt-2 w-5/6" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mt-8 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+                <div className="table-shell">
+                  <div className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-3">
+                      <SkeletonLine className="w-40" />
+                      <SkeletonLine className="w-64 max-w-full" />
+                    </div>
+
+                    <SkeletonLine className="h-12 w-36 rounded-2xl" />
+                  </div>
+
+                  <SkeletonTableRows rows={4} />
+                </div>
+
+                <div className="table-shell">
+                  <div className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-3">
+                      <SkeletonLine className="w-40" />
+                      <SkeletonLine className="w-64 max-w-full" />
+                    </div>
+
+                    <SkeletonLine className="h-12 w-36 rounded-2xl" />
+                  </div>
+
+                  <SkeletonTableRows rows={4} />
+                </div>
+              </section>
+            </>
           ) : null}
 
           {!loading && errorMessage ? (
@@ -248,16 +353,16 @@ function ChefDashboardPage() {
               <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 <div className="dashboard-card">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-500">
                         Total Meals
                       </p>
-                      <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-3 break-words text-4xl font-semibold tracking-tight text-slate-900">
                         {String(stats.totalMeals).padStart(2, "0")}
                       </h2>
                     </div>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
                       <DashboardIcon type="meals" />
                     </div>
                   </div>
@@ -269,16 +374,16 @@ function ChefDashboardPage() {
 
                 <div className="dashboard-card">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-500">
                         Approved Meals
                       </p>
-                      <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-3 break-words text-4xl font-semibold tracking-tight text-slate-900">
                         {String(stats.approvedMeals).padStart(2, "0")}
                       </h2>
                     </div>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 shadow-sm">
                       <DashboardIcon type="approval" />
                     </div>
                   </div>
@@ -290,16 +395,16 @@ function ChefDashboardPage() {
 
                 <div className="dashboard-card">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-500">
                         Active Orders
                       </p>
-                      <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-3 break-words text-4xl font-semibold tracking-tight text-slate-900">
                         {String(stats.activeOrders).padStart(2, "0")}
                       </h2>
                     </div>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-700 shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-700 shadow-sm">
                       <DashboardIcon type="orders" />
                     </div>
                   </div>
@@ -311,16 +416,16 @@ function ChefDashboardPage() {
 
                 <div className="dashboard-card">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-500">
                         Estimated Sales
                       </p>
-                      <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-3 break-words text-3xl font-semibold tracking-tight text-slate-900">
                         {formatCurrency(stats.estimatedRevenue)}
                       </h2>
                     </div>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 shadow-sm">
                       <DashboardIcon type="revenue" />
                     </div>
                   </div>
@@ -333,7 +438,7 @@ function ChefDashboardPage() {
 
               <section className="mt-8 grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
                 <div className="panel-soft relative overflow-hidden">
-                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-orange-100/70 blur-3xl" />
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-orange-100/70 blur-3xl" />
 
                   <div className="relative">
                     <div className="flex flex-wrap items-center gap-3">
@@ -344,7 +449,7 @@ function ChefDashboardPage() {
                       </span>
                     </div>
 
-                    <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
+                    <h3 className="mt-5 break-words text-2xl font-semibold tracking-tight text-slate-900">
                       {approvalStatus === "approved"
                         ? "Your chef profile is approved."
                         : approvalStatus === "rejected"
@@ -363,7 +468,7 @@ function ChefDashboardPage() {
                         <p className="text-sm font-semibold text-red-700">
                           Rejection reason
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-red-600">
+                        <p className="mt-2 break-words text-sm leading-6 text-red-600">
                           {savedUser.rejectionReason}
                         </p>
                       </div>
@@ -385,7 +490,7 @@ function ChefDashboardPage() {
 
                 <div className="panel-soft">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="text-xl font-semibold text-slate-900">
                         Quick Actions
                       </h3>
@@ -394,7 +499,7 @@ function ChefDashboardPage() {
                       </p>
                     </div>
 
-                    <span className="badge-soft">Chef workspace</span>
+                    <span className="badge-soft w-fit">Chef workspace</span>
                   </div>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -467,8 +572,8 @@ function ChefDashboardPage() {
 
               <section className="mt-8 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
                 <div className="table-shell">
-                  <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                  <div className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
                       <h3 className="text-xl font-semibold text-slate-900">
                         Recent Orders
                       </h3>
@@ -477,22 +582,21 @@ function ChefDashboardPage() {
                       </p>
                     </div>
 
-                    <Link to="/chef/orders" className="btn-secondary w-fit">
+                    <Link
+                      to="/chef/orders"
+                      className="btn-secondary w-full sm:w-fit"
+                    >
                       View All Orders
                     </Link>
                   </div>
 
                   {recentOrders.length === 0 ? (
-                    <div className="px-6 py-8">
-                      <div className="empty-state">
-                        <p className="text-lg font-semibold text-slate-900">
-                          No orders yet
-                        </p>
-                        <p className="mt-2 text-sm text-slate-500">
-                          New customer orders will appear here once customers
-                          order your approved meals.
-                        </p>
-                      </div>
+                    <div className="px-4 py-8 sm:px-6">
+                      <EmptyState
+                        type="orders"
+                        title="No orders yet"
+                        message="New customer orders will appear here once customers order your approved meals."
+                      />
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100">
@@ -517,23 +621,23 @@ function ChefDashboardPage() {
                         return (
                           <div
                             key={order.id}
-                            className="grid gap-4 px-6 py-5 transition hover:bg-slate-50 md:grid-cols-[1fr_auto_auto] md:items-center"
+                            className="grid gap-4 px-4 py-5 transition hover:bg-slate-50 sm:px-6 md:grid-cols-[1fr_auto_auto] md:items-center"
                           >
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">
+                            <div className="min-w-0">
+                              <p className="break-words text-sm font-semibold text-slate-900">
                                 Order #SM-{order.id}
                               </p>
-                              <p className="mt-1 text-sm text-slate-500">
+                              <p className="mt-1 break-words text-sm text-slate-500">
                                 {chefItems.length} item(s) •{" "}
                                 {order.customer?.name || "Customer"}
                               </p>
                             </div>
 
-                            <span className={getStatusStyle(order.status)}>
+                            <span className={`${getStatusStyle(order.status)} w-fit`}>
                               {formatStatus(order.status)}
                             </span>
 
-                            <p className="text-sm font-semibold text-slate-900">
+                            <p className="break-words text-sm font-semibold text-slate-900 md:text-right">
                               {formatCurrency(total)}
                             </p>
                           </div>
@@ -544,8 +648,8 @@ function ChefDashboardPage() {
                 </div>
 
                 <div className="table-shell">
-                  <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                  <div className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
                       <h3 className="text-xl font-semibold text-slate-900">
                         Recent Meals
                       </h3>
@@ -554,38 +658,40 @@ function ChefDashboardPage() {
                       </p>
                     </div>
 
-                    <Link to="/chef/meals" className="btn-secondary w-fit">
+                    <Link
+                      to="/chef/meals"
+                      className="btn-secondary w-full sm:w-fit"
+                    >
                       Manage Meals
                     </Link>
                   </div>
 
                   {recentMeals.length === 0 ? (
-                    <div className="px-6 py-8">
-                      <div className="empty-state">
-                        <p className="text-lg font-semibold text-slate-900">
-                          No meals created yet
-                        </p>
-                        <p className="mt-2 text-sm text-slate-500">
-                          Add your first homemade meal and submit it for admin
-                          review.
-                        </p>
-                        <Link to="/chef/meals" className="btn-primary mt-5">
-                          Add Meal
-                        </Link>
-                      </div>
+                    <div className="px-4 py-8 sm:px-6">
+                      <EmptyState
+                        type="meals"
+                        title="No meals created yet"
+                        message="Add your first homemade meal and submit it for admin review."
+                        actionLabel="Add Meal"
+                        actionPath="/chef/meals"
+                      />
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100">
                       {recentMeals.map((meal) => (
                         <div
                           key={meal.id}
-                          className="grid gap-4 px-6 py-5 transition hover:bg-slate-50 sm:grid-cols-[64px_1fr_auto] sm:items-center"
+                          className="grid gap-4 px-4 py-5 transition hover:bg-slate-50 sm:px-6 sm:grid-cols-[64px_1fr_auto] sm:items-center"
                         >
                           <div className="h-16 w-16 overflow-hidden rounded-2xl bg-slate-100">
                             {meal.imageUrl ? (
                               <img
-                                src={meal.imageUrl}
+                                src={getFullImageUrl(meal.imageUrl)}
                                 alt={meal.name}
+                                loading="lazy"
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
+                                }}
                                 className="h-full w-full object-cover"
                               />
                             ) : (
@@ -595,20 +701,20 @@ function ChefDashboardPage() {
                             )}
                           </div>
 
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">
+                          <div className="min-w-0">
+                            <p className="break-words text-sm font-semibold text-slate-900">
                               {meal.name}
                             </p>
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 break-words text-sm text-slate-500">
                               {formatCurrency(meal.price)} •{" "}
                               {meal.availability ? "Available" : "Unavailable"}
                             </p>
                           </div>
 
                           <span
-                            className={getModerationStyle(
+                            className={`${getModerationStyle(
                               meal.moderationStatus || "pending"
-                            )}
+                            )} w-fit`}
                           >
                             {formatStatus(meal.moderationStatus || "pending")}
                           </span>

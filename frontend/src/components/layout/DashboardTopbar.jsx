@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getFullImageUrl } from "../../services/uploadService";
+import LogoMark from "../common/LogoMark";
 
 function NotificationIcon() {
   return (
@@ -48,8 +49,12 @@ function DashboardTopbar({
 
   return (
     <div className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
-      <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
+          <div className="mb-4 lg:hidden">
+            <LogoMark showText={false} />
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold capitalize text-slate-500">
               {savedUser?.role || "workspace"}
